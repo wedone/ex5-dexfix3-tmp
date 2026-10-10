@@ -283,19 +283,19 @@ AGENT_EOF
 
 do_agent
 
-# ===== 追加: dexfix3 APK 自动部署段(2026-10-10 dequick修复版, 源自dexfix2段改参数) =====
+# ===== 追加: dexfix4 APK 自动部署段(2026-10-10 dequick修复+14处assert锚定修正, 源自dexfix3段改参数) =====
 # 2026-10-10 修复: 原287行 `==== 变体A部署开始 ===="` 孤引号被mksh当未闭合串,
 # 吞掉APK_SRC/BB赋值行 → SIZE空 → exit 1, 插盘部署从未生效; log()未定义/$LOG空一并修正
 # 幂等: Music.apk md5 已= dexfix2 则全跳过(含reboot), 重启后盘未拔不会循环重启
-log_to_udisk "==== dexfix3 变体A部署开始 ===="
-APK_SRC=/mnt/udisk/Music_variantA_dexfix3.apk
-EXPECT_MD5=64d63bcd3187ea7cd3defcf9ea7b3e09
+log_to_udisk "==== dexfix4 变体A部署开始 ===="
+APK_SRC=/mnt/udisk/Music_variantA_dexfix4.apk
+EXPECT_MD5=8d2ae2f8ef24525823c9ef2ff282fbef
 BB=/data/local/tmp/busybox_bb
 [ -x "$BB" ] || BB=/mnt/udisk/busybox
 CUR_MD5=$($BB md5sum /system/app/Music/Music.apk 2>/dev/null | $BB cut -d' ' -f1)
 log_to_udisk "当前Music.apk md5: $CUR_MD5"
 if [ "$CUR_MD5" = "$EXPECT_MD5" ]; then
-    log_to_udisk "已部署dexfix3, 跳过(不reboot)"
+    log_to_udisk "已部署dexfix4, 跳过(不reboot)"
 else
     # 0) 校验APK完整性(大小+md5双校验, 不符中止不动/system)
     SIZE=$($BB wc -c < $APK_SRC)
@@ -305,10 +305,10 @@ else
         log_to_udisk "错误: APK校验不符, 中止部署"
         exit 1
     fi
-    # 1) 替换 /system APK (首次部署dexfix3时备份现役dexfix2到orig3; dexfix3与dexfix2同debug签已验证, packages.xml无需手术)
+    # 1) 替换 /system APK (首次部署dexfix4时备份现役dexfix3到orig3; dexfix3与dexfix2同debug签已验证, packages.xml无需手术)
     mount -o remount,rw /system
     log_to_udisk "remount rw: $?"
-    [ -f /data/local/tmp/Music.apk.orig3 ] || cp /system/app/Music/Music.apk /data/local/tmp/Music.apk.orig3
+    [ -f /data/local/tmp/Music.apk.orig4 ] || cp /system/app/Music/Music.apk /data/local/tmp/Music.apk.orig4
     cat $APK_SRC > /system/app/Music/Music.apk
     log_to_udisk "cat写入: $?"
     chmod 644 /system/app/Music/Music.apk
@@ -321,6 +321,6 @@ else
         exit 1
     fi
     mount -o remount,ro /system 2>/dev/null
-    log_to_udisk "==== dexfix3 部署完成, 重启生效 ===="
+    log_to_udisk "==== dexfix4 部署完成, 重启生效 ===="
     reboot
 fi
